@@ -197,21 +197,19 @@ class Target_User(models.Model):
             print("[ERR] HTTP close error.")
             print(e)
 
-        # Deleting from following list.
-        exists = True
-
+        # Set user as purged.
         following = None
 
         try:
             following = await sync_to_async(Following.objects.get)(target_user = self, user = user)
         except Exception:
-            exists = False
+            following = None
 
-        if following is None:
-            exists = False
+        if following is not None:
+            following.purged = True
 
-        if exists:
-            following.delete()
+            # Save.
+            await sync_to_async(following.save)()
 
         if bool(await sync_to_async(Setting.get)(key = "verbose")):
             print("[V] Unfollowing user " + user.username + " from " + self.user.username + ".")

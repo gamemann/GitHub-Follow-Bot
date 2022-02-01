@@ -22,7 +22,11 @@ class Parser(threading.Thread):
         self.global_token = None
         self.global_username = None
 
+        
+        self.parse_users_task = None
         self.retrieve_followers_task = None
+        self.purge_following_task = None
+
         self.retrieve_and_save_task = None
 
     def run(self):
@@ -223,6 +227,46 @@ class Parser(threading.Thread):
 
         await asyncio.gather(follow_targets_task)
 
+    async def purge_following(self):
+        import gf.models as mdl
+
+        secs_in_day = 86400
+
+        while True:
+            # Retrieve target users.
+            target_users = await self.get_target_users()
+
+            # Loop through target users.
+            for tuser in target_users:
+                # Make sure cleanup days is above 0 (enabled).
+                if tuser.cleanup_days < 1:
+                    continue
+
+                # Retrieve the target user's following list.
+                users = None
+
+                try:
+                    users = await self.get_filtered(mdl.Following, {"target_user": tuser, "purged": False})
+                except Exception:
+                    users = None
+
+                # Make sure we have users and loop.
+                if users is not None:
+                    for user in users:
+                        now = datetime.datetime.now().timestamp()
+                        expired = user.time_added.timestamp() + (tuser.cleanup_days * secs_in_day)
+
+                        # Check if we're expired.
+                        if now > expired:
+                            # Unfollow used and mark them as purged.
+                            await sync_to_async(tuser.unfollow_user)(user)
+
+                            # Set purged to true.
+                            user.purged = True
+
+                            # Save user.
+                            await sync_to_async(user.save)()
+
     async def retrieve_followers(self):
         import gf.models as mdl
 
@@ -238,6 +282,7 @@ class Parser(threading.Thread):
                 
                 page = 1
 
+                # We'll want to create a loop through of the target user's followers.
                 while True:
                     # Make connection.
                     try:
@@ -293,6 +338,9 @@ class Parser(threading.Thread):
                             exists = False
 
                         if not exists or muser is None:
+                            exists = False
+
+                        if not exists:
                             muser = mdl.User(gid = fuser["id"], username = fuser["login"])
                             await sync_to_async(muser.save)()
 
@@ -308,16 +356,31 @@ class Parser(threading.Thread):
                         if exists and tmp is None:
                             exists = False
 
+                        # Make a new follower entry.
+                        if not exists:
+                            new_user = mdl.Follower(target_user = user, user = muser)
+                            await sync_to_async(new_user.save)()
+
+                        # Check if the same user is following our target.
+                        exists = True
+
+                        try:
+                            tmp = await self.get_filtered(mdl.Following, {"target_user": user, "user": muser})
+                            tmp = tmp[0]
+                        except Exception:
+                            exists = False
+
+                        if exists and tmp is None:
+                            exists = False
+                        
+                        # Check if target user is following this user.
                         if exists:
-                            continue
+                            #  Check for remove following setting. If enabled, unfollow user.
+                            if user.remove_following:
+                                await user.unfollow_user(muser)
 
-                        # Now add it to list and unfollow user.
-                        new_user = mdl.Follower(target_user = user, user = muser)
-                        await sync_to_async(new_user.save)()
-
-                        await user.unfollow_user(muser)
-
-                        await asyncio.sleep(float(random.randint(int(await self.get_setting("wait_time_follow_min")), int(await self.get_setting("wait_time_follow_max")))))
+                                # We'll want to wait the follow period.
+                                await asyncio.sleep(float(random.randint(int(await self.get_setting("wait_time_follow_min")), int(await self.get_setting("wait_time_follow_max")))))
 
                     # Increment page
                     page = page + 1
@@ -327,52 +390,56 @@ class Parser(threading.Thread):
     async def parse_users(self):
         import gf.models as mdl
 
-        # Retrieve users.
-        seed_users = await self.get_seed_users()
-        target_users = await self.get_target_users()
-        max_users = int(await self.get_setting("max_scan_users"))
+        while True:
+            # Retrieve users.
+            seed_users = await self.get_seed_users()
+            target_users = await self.get_target_users()
+            max_users = int(await self.get_setting("max_scan_users"))
 
-        # Loop for target GIDs to exclude from parsing list.
-        gids = []
+            # Loop for target GIDs to exclude from parsing list.
+            gids = []
 
-        for user in target_users:
-            gids.append(user.user.gid)
+            for user in target_users:
+                gids.append(user.user.gid)
 
-        # Retrieve users excluding target users.
-        users = await self.get_users(gids)
+            # Retrieve users excluding target users.
+            users = await self.get_users(gids)
 
-        for user in users[:max_users]:
-            # Update last parsed.
-            user.last_parsed = make_aware(datetime.datetime.now())
+            for user in users[:max_users]:
+                # Update last parsed.
+                user.last_parsed = make_aware(datetime.datetime.now())
 
-            # Check if seeded.
-            if user.seeded:
-                user.seeded = False
+                # Check if seeded.
+                if user.seeded:
+                    user.seeded = False
 
-            # Update GUID.
-            await user.retrieve_github_id()
+                # Update GUID.
+                await user.retrieve_github_id()
 
-            # Save user.
-            await sync_to_async(user.save)()
+                # Save user.
+                await sync_to_async(user.save)()
 
-            # Make sure this isn't a seed user and the amount of users we have isn't equal to seed users.
-            seeder = True
+                # Make sure this isn't a seed user and the amount of users we have isn't equal to seed users.
+                seeder = True
 
-            try:
-                tmp = await self.get_filtered(mdl.Seeder, {"user": user})
-                tmp = tmp[0]
-            except Exception:
-                seeder = False
+                try:
+                    tmp = await self.get_filtered(mdl.Seeder, {"user": user})
+                    tmp = tmp[0]
+                except Exception:
+                    seeder = False
 
-            if seeder and tmp is None:
-                seeder = False
+                if seeder and tmp is None:
+                    seeder = False
 
-            if seeder and len(seed_users) < len(users):
-                continue
+                if seeder and len(seed_users) < len(users):
+                    continue
 
-            # Parse user.
-            await self.parse_user(user)
+                # Parse user.
+                await self.parse_user(user)
 
+            # Wait scan time.
+            await asyncio.sleep(float(random.randint(int(await self.get_setting("scan_time_min")), int(await self.get_setting("scan_time_max")))))
+            
     async def work(self):
         # Retrieve all target users
         tusers = await self.get_target_users()
@@ -385,12 +452,18 @@ class Parser(threading.Thread):
 
         # Create a loop until the program ends.
         while True:
-            asyncio.create_task(self.parse_users())
+            # Run parse users task.
+            if self.parse_users_task is None or self.parse_users_task.done():
+                self.parse_users_task = asyncio.create_task(self.parse_users())
 
+            # Create tasks to check followers/following for target users.
             if self.retrieve_followers_task is None or self.retrieve_followers_task.done():
                 self.retrieve_followers_task = asyncio.create_task(self.retrieve_followers())
+            
+            if self.purge_following_task is None or self.purge_following_task.done():
+                self.purge_following_task = asyncio.create_task(self.purge_following())
 
-            # Wait whatever scan time is in seconds.
-            await asyncio.sleep(float(random.randint(int(await self.get_setting("scan_time_min")), int(await self.get_setting("scan_time_max")))))
+            # Sleep for a second to avoid CPU consumption.
+            await asyncio.sleep(1)
 
 parser = Parser()
