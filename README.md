@@ -8,6 +8,18 @@ The bot technically works, but it is missing the following features that will be
 * A better randomized waiting time system including "active hours".
 * Unexpected behavior is possible.
 
+## My Motives
+A few months ago, I discovered a few GitHub users following over 100K users who were obviously using bots. At first I was shocked because I thought GitHub was against massive following users, but after reading more into it, it appears they don't mind. This had me thinking what if I started following random users as well. Some of these users had a single GitHub.io project that received a lot of attention and I'd assume it's from all the users they were following. I decided to try this. I wanted to see if it'd help me connect with other developers and it certainly did/has! Personally, I haven't used a bot to achieve this, I was actually going through lists of followers from other accounts and following random users. As you'd expect, this completely cluttered my home page, but it also allowed me to discover new projects which was neat in my opinion.
+
+While this is technically 'spam', the good thing I've noticed is it certainly doesn't impact the user I'm followiing much other than adding a single line in their home page stating I'm following them (or them receiving an email stating this if they have that on). Though, I could see this becoming annoying if many people/bots started doing it (perhaps GitHub could add a user setting that has a maximum following count of a user who can follow them or receive notifications when the user follows).
+
+I actually think it's neat this is allowed so far because it allows others to discover your projects. Since I have quite a few networking projects on this account, I've had some people reach out who I followed stating they found my projects neat because they aren't into that field.
+
+I also wouldn't support empty profiles made just for the purpose of mass following.
+
+## USE AT YOUR OWN RISK
+Even though it appears GitHub doesn't mind users massive following others (which I again, support), this is still considered a spam tactic. Therefore, please use this tool at your own risk. I'm not even going to be using it myself because I do enjoy manually following users.
+
 ## Description
 This is a GitHub Follower Bot made inside of a Django application. Management of the bot is done inside of Django's default admin center. The bot itself runs in the background of the Django application.
 
