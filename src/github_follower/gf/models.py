@@ -231,6 +231,7 @@ class Follower(models.Model):
 class Following(models.Model):
     target_user = models.ForeignKey(Target_User, on_delete = models.CASCADE)
     user = models.ForeignKey(User, on_delete = models.CASCADE)
+    purged = models.BooleanField(editable = False, default = False)
 
     time_added = models.DateTimeField(editable = False, auto_now_add = True)
 
