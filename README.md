@@ -76,7 +76,16 @@ python3 manage.py migrate
 
 # Run the development server on any IP (0.0.0.0) as port 8000.
 python3 manage.py runserver 0.0.0.0:8000
+
+# NOTE - If you don't want to expose the application publicly, bind it to a local IP above (e.g. 10.50.0.4:8000 instead 0f 0.0.0.0:8000).
+
+# Create super user for admin web interface.
+python3 manage.py createsuperuser
 ```
+
+The web interface should be located at `http://<host/ip>:<port>/admin`. For example.
+
+http://localhost:8000/admin
 
 While you could technically run the Django application's development server for this bot since only the settings are configured through there, Django recommends reading [this](https://docs.djangoproject.com/en/3.2/howto/deployment/) for production use.
 
