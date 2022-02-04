@@ -24,7 +24,7 @@ class GfConfig(AppConfig):
             Setting.create("scan_time_max", "60", False)
             Setting.create("follow", "1", False)
             Setting.create("verbose", "1", False)
-            Setting.create("user_agent", "1", False)
+            Setting.create("user_agent", "GitHub-Follower", False)
 
             bb.parser.start()
         else:
