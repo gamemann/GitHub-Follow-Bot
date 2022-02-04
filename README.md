@@ -104,5 +104,9 @@ Inside of the web interface, a settings model should be visible. The following s
 * **follow** - Whether to follow users or not (should be "True" or "False").
 * **verbose** - Whether to output additional information (should be "True" or "False").
 
+## FAQ
+**What did you choose Django to use as an interface?**
+While settings could have been configured on the host itself, I wanted an interface that was easily accessible from anywhere. The best thing for this would be a webssite in my opinion. Most of my experience is with Django which is why I chose that project.
+
 ## Credits
 * [Christian Deacon](https://github.com/gamemann)
