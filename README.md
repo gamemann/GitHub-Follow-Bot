@@ -17,7 +17,7 @@ I actually think it's neat this is allowed so far because it allows others to di
 I also wouldn't support empty profiles made just for the purpose of mass following.
 
 ## USE AT YOUR OWN RISK
-Even though it appears GitHub doesn't mind users massive following others (which I again, support), this is still considered a spam tactic. Therefore, please use this tool at your own risk. I'm not even going to be using it myself because I do enjoy manually following users.
+Even though it appears GitHub doesn't mind users massive following others (which I again, support), this is still considered a spam tactic. Therefore, please use this tool at your own risk. I'm not even going to be using it myself because I do enjoy manually following users. I made this project to learn more about Python.
 
 ## Description
 This is a GitHub Follower Bot made inside of a Django application. Management of the bot is done inside of Django's default admin center. The bot itself runs in the background of the Django application.
