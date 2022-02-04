@@ -108,6 +108,7 @@ While you could technically run the Django application's development server for 
 
 ## FAQ
 **What did you choose Django to use as an interface?**
+
 While settings could have been configured on the host itself, I wanted an interface that was easily accessible from anywhere. The best thing for this would be a webssite in my opinion. Most of my experience is with Django which is why I chose that project.
 
 ## Credits
