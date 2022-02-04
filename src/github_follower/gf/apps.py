@@ -25,7 +25,6 @@ class GfConfig(AppConfig):
             Setting.create("wait_time_list_max", "30", False)
             Setting.create("scan_time_min", "5", False)
             Setting.create("scan_time_max", "60", False)
-            Setting.create("follow", "1", False)
             Setting.create("verbose", "1", False)
             Setting.create("user_agent", "GitHub-Follower", False)
             Setting.create("seed", "1", False)

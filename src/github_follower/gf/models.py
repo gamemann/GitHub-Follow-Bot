@@ -138,10 +138,12 @@ class Target_User(models.Model):
     cleanup_days = models.IntegerField(verbose_name = "Cleanup Days", help_text = "Automatically purges uses from the following list after this many days.")
     token = models.CharField(verbose_name = "Personal Token", help_text = "GitHub's personal token for authentication.", max_length=128)
     global_user = models.BooleanField(verbose_name = "Global User", help_text = "If true, this user's token and username will be used for authentication in general.", default=False)
+    allow_follow = models.BooleanField(verbose_name = "Allow Following", help_text = "If true, this user will start following parsed users.", default = True)
+    allow_unfollow = models.BooleanField(verbose_name = "Allow Unfollowing", help_text = "If true, the bot will unfollow users for this target user.", default = True)
 
     async def follow_user(self, user):
         # Check if we should follow.
-        if not bool(int(await sync_to_async(Setting.get)(key = "follow"))):
+        if not self.allow_follow:
             return
 
         # Make connection GitHub's API.
@@ -175,6 +177,10 @@ class Target_User(models.Model):
             print("[V] Following user " + user.username + " for " + self.user.username + ".")
 
     async def unfollow_user(self, user):
+        # Check if we should unfollow.
+        if not self.allow_unfollow:
+            return
+
         # Make connection GitHub's API.
         api = ga.GH_API()
 
