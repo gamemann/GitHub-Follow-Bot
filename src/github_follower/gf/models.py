@@ -172,7 +172,7 @@ class Target_User(models.Model):
 
         await sync_to_async(new_following.save)()
 
-        if bool(int(await sync_to_async(Setting.get)(key = "verbose"))):
+        if int(await sync_to_async(Setting.get)(key = "verbose")) >= 1:
             print("[V] Following user " + user.username + " for " + self.user.username + ".")
 
     async def unfollow_user(self, user):
@@ -212,7 +212,7 @@ class Target_User(models.Model):
             # Save.
             await sync_to_async(following.save)()
 
-        if bool(int(await sync_to_async(Setting.get)(key = "verbose"))):
+        if int(await sync_to_async(Setting.get)(key = "verbose")) >= 2:
             print("[V] Unfollowing user " + user.username + " from " + self.user.username + ".")
 
     class Meta:
