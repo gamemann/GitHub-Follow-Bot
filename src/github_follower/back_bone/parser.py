@@ -154,7 +154,7 @@ class Parser(threading.Thread):
             if user_cnt > free_users:
                 return
 
-        page = 1
+        page = user.cur_page
 
         # Create a loop and go through.
         while True:
@@ -216,6 +216,11 @@ class Parser(threading.Thread):
 
             # Make sure we have data, if not, break the loop.
             if len(data) < 1 or page >= int(await self.get_setting("seed_max_pages")):
+                # Save page and user.
+                user.cur_page = page
+
+                await sync_to_async(user.save)()
+
                 break
 
             for nuser in data:

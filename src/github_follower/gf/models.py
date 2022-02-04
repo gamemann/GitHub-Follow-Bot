@@ -69,6 +69,8 @@ class User(models.Model):
     needs_to_seed = models.BooleanField(editable = False, default = False)
     auto_added = models.BooleanField(editable = False, default = False)
 
+    cur_page = models.IntegerField(editable = False, default = 1)
+
     async def retrieve_github_id(self):
         if back_bone.parser.api is None:
             back_bone.parser.api = ga.GH_API()
@@ -103,6 +105,12 @@ class User(models.Model):
             return
 
         return_code = await back_bone.parser.api.retrieve_response_code()
+
+        # Check status code.
+        if return_code != 200 and return_code != 204:
+            await back_bone.parser.do_fail()
+
+            return
 
         # Close connection.
         await back_bone.parser.api.close()
@@ -177,7 +185,6 @@ class Target_User(models.Model):
 
         # Check status code.
         if return_code != 200 and return_code != 204:
-            print("NOT GOOD CODE => " + str(return_code))
             await back_bone.parser.do_fail()
 
             return
