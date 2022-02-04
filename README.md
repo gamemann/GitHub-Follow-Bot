@@ -74,6 +74,7 @@ Inside of the web interface, a settings model should be visible. The following s
 * **max_api_fails** - The max amount of GitHub API fails before stopping the bot for a period of time based off of below (0 = disable).
 * **lockout_wait_min** - When the amount of fails exceeds max API fails, it will wait this time minimum in minutes until starting up again.
 * **lockout_wait_max** - When the amount of fails exceeds max API fails, it will wait this time maximum in minutes until starting up again.
+* **seed_max_pages** - The max amount of pages to seed from with each user parse when looking for new users (seeding).
 
 ## Installation
 Installation should be performed like a regular Django application. This application uses SQLite as the database. You can read more about Django [here](https://docs.djangoproject.com/en/4.0/intro/tutorial01/). I would recommend the following commands.
