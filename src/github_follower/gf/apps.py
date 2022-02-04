@@ -29,6 +29,9 @@ class GfConfig(AppConfig):
             Setting.create("user_agent", "GitHub-Follower", False)
             Setting.create("seed", "1", False)
             Setting.create("seed_min_free", "64", False)
+            Setting.create("max_api_fails", "5", False)
+            Setting.create("lockout_wait_min", "1", False)
+            Setting.create("lockout_wait_max", "10", False)
 
             bb.parser.start()
         else:

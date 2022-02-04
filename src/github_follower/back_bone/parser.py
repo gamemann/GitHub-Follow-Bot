@@ -20,10 +20,12 @@ class Parser(threading.Thread):
         # Set daemon to true.
         self.daemon = True
 
+        self.running = False
+        self.locked = False
+
         self.global_token = None
         self.global_username = None
 
-        
         self.parse_users_task = None
         self.retrieve_followers_task = None
         self.purge_following_task = None
@@ -32,6 +34,8 @@ class Parser(threading.Thread):
 
     def run(self):
         print("Parser is running...")
+
+        self.running = True
 
         # Start the back-end parser.
         asyncio.run(self.work())
@@ -68,6 +72,21 @@ class Parser(threading.Thread):
             return list(otype.objects.all())
         else:
             return list(otype.objects.filter(**params))
+
+
+    async def do_fail(self, api):
+        # Increase fail count.
+        api.fails = api.fails + 1
+        
+        #  If fail count exceeds max fails setting, set locked to True and stop everything.
+        if api.fails > int(await self.get_setting("max_api_fails")):
+            self.running = False
+            self.locked = True
+
+            # Run lockout task in background.
+            await self.run_locked_task()
+
+            return
 
     async def retrieve_and_save_followers(self, user):
         import gf.models as mdl
@@ -128,7 +147,11 @@ class Parser(threading.Thread):
                 print("[ERR] Failed to retrieve user's following list for " + user.username + " (request failure).")
                 print(e)
 
+                await self.do_fail(api)
+
                 break
+
+            return_code = await api.retrieve_response_code()
 
             # Retrieve response.
             try:
@@ -137,7 +160,15 @@ class Parser(threading.Thread):
                 print("[ERR] Failed to retrieve user's following list for " + user.username + " (response failure).")
                 print(e)
 
-                break  
+                await self.do_fail(api)
+
+                break
+
+            # Check status code.
+            if await return_code != 200:
+                await self.do_fail(api)
+
+                break
 
             # Close connection.
             try:
@@ -229,7 +260,7 @@ class Parser(threading.Thread):
             await asyncio.sleep(float(random.randint(int(await self.get_setting("wait_time_follow_min")), int(await self.get_setting("wait_time_follow_max")))))
 
     async def parse_user(self, user):
-        if bool(int(await self.get_setting("seed"))):
+        if bool(int(await self.get_setting("seed"))) and not self.locked:
             if self.retrieve_and_save_task is None or self.retrieve_and_save_task.done():
                 self.retrieve_and_save_task = asyncio.create_task(self.retrieve_and_save_followers(user))
         else:
@@ -305,6 +336,8 @@ class Parser(threading.Thread):
                         print("[ERR] Failed to retrieve target user's followers list for " + user.user.username + " (request failure).")
                         print(e)
 
+                        await self.do_fail(api)
+
                         break
 
                     # Retrieve results.
@@ -314,7 +347,11 @@ class Parser(threading.Thread):
                         print("[ERR] Failed to retrieve target user's followers list for " + user.user.username + " (response failure).")
                         print(e)
 
+                        await self.do_fail(api)
+
                         break
+                        
+                    return_code = await api.retrieve_response_code()
 
                     # Close connection.
                     try:
@@ -322,6 +359,12 @@ class Parser(threading.Thread):
                     except Exception as e:
                         print("[ERR] HTTP close error.")
                         print(e)
+
+                    # Check status code.
+                    if return_code != 200:
+                        await self.do_fail(api)
+
+                        break
 
                     # Decode JSON.
                     try:
@@ -451,7 +494,7 @@ class Parser(threading.Thread):
         # Create a loop until the program ends.
         while True:
             # Check if we're enabled.
-            if bool(int(await self.get_setting("enabled"))):
+            if bool(int(await self.get_setting("enabled"))) and not self.locked:
                 # Run parse users task.
                 if self.parse_users_task is None or self.parse_users_task.done():
                     self.parse_users_task = asyncio.create_task(self.parse_users())
@@ -478,5 +521,16 @@ class Parser(threading.Thread):
 
             # Sleep for a second to avoid CPU consumption.
             await asyncio.sleep(1)
+
+    async def run_locked(self):
+        wait_time = float(random.randint(int(await self.get_setting("lockout_wait_min")), int(await self.get_setting("lockout_wait_max"))) * 60)
+
+        asyncio.sleep(wait_time)
+
+        self.locked = False
+        self.running = True
+
+    async def run_locked_task(self):
+        asyncio.create_task(self.run_locked())
 
 parser = Parser()

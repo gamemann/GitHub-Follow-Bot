@@ -8,12 +8,14 @@ class GH_API():
         self.conn = None
         self.headers = {}
 
-        self.endpoint = 'https://api.github.com'
+        self.endpoint = 'https://api.github.co'
 
         self.method = "GET"
         self.url = "/"
 
         self.response = None
+        self.response_code = 0
+        self.fails = 0
 
         # Default user agent.
         user_agent = mdl.Setting.get("user_agent")
@@ -41,6 +43,9 @@ class GH_API():
 
     async def retrieve_response(self):
         return await self.response.text()
+
+    async def retrieve_response_code(self):
+        return self.response.status
 
     def authenticate(self, user, token):
         mix = user + ":" + token

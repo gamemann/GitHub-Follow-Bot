@@ -159,7 +159,11 @@ class Target_User(models.Model):
             print("[ERR] Failed to follow GitHub user " + user.username + " for " + self.user.username + " (request failure).")
             print(e)
 
+            await back_bone.parser.do_fail(api)
+
             return
+
+        return_code = await api.retrieve_response_code()
 
         # Close connection.
         try:
@@ -167,6 +171,12 @@ class Target_User(models.Model):
         except Exception as e:
             print("[ERR] HTTP close error.")
             print(e)
+
+        # Check status code.
+        if return_code != 200:
+            await back_bone.parser.do_fail(api)
+
+            return
 
         # Save to following.
         new_following = Following(target_user = self, user = user)
@@ -194,7 +204,11 @@ class Target_User(models.Model):
             print("[ERR] Failed to unfollow GitHub user " + user.username + " for " + self.user.username + " (request failure).")
             print(e)
 
+            await back_bone.parser.do_fail(api)
+
             return
+
+        return_code = await api.retrieve_response_code()
 
         # Close connection.
         try:
@@ -202,6 +216,12 @@ class Target_User(models.Model):
         except Exception as e:
             print("[ERR] HTTP close error.")
             print(e)
+
+        # Check status code.
+        if return_code != 200:
+            await back_bone.parser.do_fail(api)
+
+            return
 
         # Set user as purged.
         following = None
