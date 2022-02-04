@@ -6,6 +6,7 @@ import threading
 import datetime
 from django.conf import settings
 from django.utils.timezone import make_aware
+from django.db.models import F
 
 import random
 
@@ -39,7 +40,7 @@ class Parser(threading.Thread):
     def get_users(self, gids):
         import gf.models as mdl
 
-        return list(mdl.User.objects.all().exclude(gid__in = gids).order_by('needs_to_seed', 'last_parsed'))
+        return list(mdl.User.objects.all().exclude(gid__in = gids).order_by('needs_to_seed', F('last_parsed').asc(nulls_first = True)))
 
     @sync_to_async
     def get_seed_users(self):
