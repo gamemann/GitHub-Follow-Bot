@@ -91,6 +91,9 @@ class Parser(threading.Thread):
 
             return
 
+        if max_fails < 1:
+            return
+
         if int(await self.get_setting("verbose")) >= 3:
             print("[VVV] Adding fail (" + str(self.api.fails) + " > " + str(max_fails) + ").")
         
