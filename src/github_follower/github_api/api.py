@@ -8,7 +8,7 @@ class GH_API():
         self.conn = None
         self.headers = {}
 
-        self.endpoint = 'https://api.github.co'
+        self.endpoint = 'https://api.github.com'
 
         self.method = "GET"
         self.url = "/"
