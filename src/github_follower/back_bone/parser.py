@@ -377,7 +377,6 @@ class Parser(threading.Thread):
 
         while True:
             # Retrieve users.
-            seed_users = await self.get_seed_users()
             target_users = await self.get_target_users()
             max_users = int(await self.get_setting("max_scan_users"))
 
@@ -404,21 +403,6 @@ class Parser(threading.Thread):
                 # Save user.
                 await sync_to_async(user.save)()
 
-                # Make sure this isn't a seed user and the amount of users we have isn't equal to seed users.
-                seeder = True
-
-                try:
-                    tmp = await self.get_filtered(mdl.Seeder, {"user": user})
-                    tmp = tmp[0]
-                except Exception:
-                    seeder = False
-
-                if seeder and tmp is None:
-                    seeder = False
-
-                if seeder and len(seed_users) < len(users):
-                    continue
-
                 # Parse user.
                 await self.parse_user(user)
 
@@ -437,16 +421,31 @@ class Parser(threading.Thread):
 
         # Create a loop until the program ends.
         while True:
-            # Run parse users task.
-            if self.parse_users_task is None or self.parse_users_task.done():
-                self.parse_users_task = asyncio.create_task(self.parse_users())
+            # Check if we're enabled.
+            if bool(await self.get_setting("enabled")):
+                # Run parse users task.
+                if self.parse_users_task is None or self.parse_users_task.done():
+                    self.parse_users_task = asyncio.create_task(self.parse_users())
 
-            # Create tasks to check followers/following for target users.
-            if self.retrieve_followers_task is None or self.retrieve_followers_task.done():
-                self.retrieve_followers_task = asyncio.create_task(self.retrieve_followers())
-            
-            if self.purge_following_task is None or self.purge_following_task.done():
-                self.purge_following_task = asyncio.create_task(self.purge_following())
+                # Create tasks to check followers/following for target users.
+                if self.retrieve_followers_task is None or self.retrieve_followers_task.done():
+                    self.retrieve_followers_task = asyncio.create_task(self.retrieve_followers())
+                
+                if self.purge_following_task is None or self.purge_following_task.done():
+                    self.purge_following_task = asyncio.create_task(self.purge_following())
+            else:
+                # Check tasks and make sure they're closed.
+                if self.parse_users_task in asyncio.all_tasks():
+                    self.parse_users_task.cancel()
+                    self.parse_users_task = None
+
+                if self.retrieve_and_save_task in asyncio.all_tasks():
+                    self.retrieve_and_save_task.cancel()
+                    self.retrieve_and_save_task = None
+                
+                if self.purge_following_task in asyncio.all_tasks():
+                    self.purge_following_task.cancel()
+                    self.purge_following_task = None
 
             # Sleep for a second to avoid CPU consumption.
             await asyncio.sleep(1)

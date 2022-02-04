@@ -17,6 +17,7 @@ class GfConfig(AppConfig):
             from .models import Setting
 
             # Set settings. defaults.
+            Setting.create("enabled", "0", False)
             Setting.create("max_scan_users", "10", False)
             Setting.create("wait_time_follow_min", "10", False)
             Setting.create("wait_time_follow_max", "30", False)
