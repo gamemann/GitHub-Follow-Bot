@@ -94,6 +94,7 @@ While you could technically run the Django application's development server for 
 ## Settings
 Inside of the web interface, a settings model should be visible. The following settings should be inserted.
 
+* **enabled** - Whether to enable the bot or not (should be "1" or "0").
 * **max_scan_users** - The maximum users to parse at once before waiting for scan time.
 * **wait_time_follow_min** - The minimum number of seconds to wait after following or unfollowing a user.
 * **wait_time_follow_max** - The maximum number of seconds to wait after following or unfollowing a user.
