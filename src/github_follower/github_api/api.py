@@ -79,3 +79,8 @@ class GH_API():
         except Exception as e:
             print("[ERR] HTTP close error.")
             print(e)
+
+            return
+
+        # Set fails to 0 indicating we closed the connection.
+        self.fails = 0
