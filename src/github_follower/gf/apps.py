@@ -6,6 +6,8 @@ import os
 class GfConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'gf'
+    verbose_name = 'GitHub Follower'
+
 
     def ready(self):
         env = os.environ.get("FIRST_THREAD")

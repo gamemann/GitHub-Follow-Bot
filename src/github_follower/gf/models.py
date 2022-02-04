@@ -215,6 +215,9 @@ class Target_User(models.Model):
         if bool(int(await sync_to_async(Setting.get)(key = "verbose"))):
             print("[V] Unfollowing user " + user.username + " from " + self.user.username + ".")
 
+    class Meta:
+        verbose_name = "Target User"
+
     def __str__(self):
         return self.user.username
 
