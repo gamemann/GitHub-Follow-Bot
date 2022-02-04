@@ -405,6 +405,18 @@ class Parser(threading.Thread):
             # Retrieve users excluding target users.
             users = await self.get_users(gids)
 
+            # Add any seaders we haven't seeded yet.
+            for user in seed_users:
+                if not user.time_added:
+                    # Prepend to users list.
+                    users.prepend(user)
+
+                    # Set time.
+                    user.time_added = make_aware(datetime.datetime.now)
+
+                    # Save user.
+                    await sync_to_async(user.save)()
+
             for user in users[:max_users]:
                 # Update last parsed.
                 user.last_parsed = make_aware(datetime.datetime.now())

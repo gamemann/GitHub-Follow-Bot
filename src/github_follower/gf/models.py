@@ -239,5 +239,7 @@ class Following(models.Model):
 class Seeder(models.Model):
     user = models.ForeignKey(User, on_delete = models.CASCADE)
 
+    time_seeded = models.DateTimeField(editable = False, null = True)
+
     def __str__(self):
         return self.user.username
