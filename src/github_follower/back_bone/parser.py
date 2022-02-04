@@ -39,7 +39,7 @@ class Parser(threading.Thread):
     def get_users(self, gids):
         import gf.models as mdl
 
-        return list(mdl.User.objects.all().exclude(gid__in = gids).order_by('seeded', 'last_parsed'))
+        return list(mdl.User.objects.all().exclude(gid__in = gids).order_by('needs_to_seed', 'last_parsed'))
 
     @sync_to_async
     def get_seed_users(self):
@@ -161,21 +161,6 @@ class Parser(threading.Thread):
                 if not exists:
                     # Create new user by username.
                     new_user = mdl.User(gid = nuser["id"], username = nuser["login"], parent = user.gid, auto_added = True)
-
-                    # Check if we're seeded.
-                    seeded = True
-
-                    try:
-                        tmp = await self.get_filtered(mdl.Seeder, {"user": user})
-                        tmp = tmp[0]
-                    except Exception:
-                        seeded = False
-
-                    if seeded and tmp is None:
-                        seeded = False
-
-                    if seeded:
-                        new_user.seeded = True
 
                     # Save user.
                     await sync_to_async(new_user.save)()
@@ -405,25 +390,13 @@ class Parser(threading.Thread):
             # Retrieve users excluding target users.
             users = await self.get_users(gids)
 
-            # Add any seaders we haven't seeded yet.
-            for user in seed_users:
-                if not user.time_added:
-                    # Prepend to users list.
-                    users.prepend(user)
-
-                    # Set time.
-                    user.time_added = make_aware(datetime.datetime.now)
-
-                    # Save user.
-                    await sync_to_async(user.save)()
-
             for user in users[:max_users]:
                 # Update last parsed.
                 user.last_parsed = make_aware(datetime.datetime.now())
 
-                # Check if seeded.
-                if user.seeded:
-                    user.seeded = False
+                # Check if this user needed to seed.
+                if user.needs_to_seed:
+                    user.needs_to_seed = False
 
                 # Update GUID.
                 await user.retrieve_github_id()

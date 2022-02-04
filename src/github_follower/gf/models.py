@@ -66,7 +66,8 @@ class User(models.Model):
 
     last_updated = models.DateTimeField(editable = False, auto_now_add = True, null = True)
     last_parsed = models.DateTimeField(editable = False, auto_now_add = True, null = True)
-    seeded = models.BooleanField(editable = False, default = False)
+
+    needs_to_seed = models.BooleanField(editable = False, default = False)
     auto_added = models.BooleanField(editable = False, default = False)
 
     async def retrieve_github_id(self):
@@ -239,7 +240,20 @@ class Following(models.Model):
 class Seeder(models.Model):
     user = models.ForeignKey(User, on_delete = models.CASCADE)
 
-    time_seeded = models.DateTimeField(editable = False, null = True)
+    def save(self, *args, **kwargs):
+        try:
+            super().save(*args, **kwargs)
+        except Exception as e:
+            print("[ERR] Error saving seed user.")
+            print(e)
+
+            return
+
+        # We need to seed user.
+        self.user.needs_to_seed = True
+
+        # Save user.
+        self.save()
 
     def __str__(self):
         return self.user.username
