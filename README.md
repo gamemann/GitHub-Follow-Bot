@@ -109,6 +109,7 @@ Inside of the web interface, a settings model should be visible. The following s
 1. \+ Notification when users are automatically created from follow spread.
 * **user_agent** - The User Agent used to connect to the GitHub API.
 * **seed** - Whether to seed (add any existing user's followers to the user list).
+* **seed_min_free** - If above 0 and seeding is enabled, seeding will only occur when the amount of new users (users who haven't been followed by any target users) is below this value.
 
 ## FAQ
 **What did you choose Django to use as an interface?**
