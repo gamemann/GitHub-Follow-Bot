@@ -28,7 +28,14 @@ class GH_API():
     def add_header(self, key, val):
         self.headers[key] = val
 
-    def make_connection(self):
+    async def make_connection(self):
+        # Check connection first.
+        if self.conn is not None:
+            if not self.conn.closed:
+                await self.close()
+
+            self.conn = None
+
         self.conn = aiohttp.ClientSession()
 
     def add_fail(self):
@@ -59,7 +66,7 @@ class GH_API():
 
     async def send(self, method = "GET", url = "/", headers = None):
         # Make connection.
-        self.make_connection()
+        await self.make_connection()
 
         # Insert additional headers.
         if headers is not None:
