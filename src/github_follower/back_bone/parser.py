@@ -180,11 +180,7 @@ class Parser(threading.Thread):
                     # Save user.
                     await sync_to_async(new_user.save)()
 
-                    test = bool(int(await self.get_setting("verbose")))
-                    print("Value of test => " + str(test))
-                    
-                    if test:
-                        
+                    if bool(await self.get_setting("verbose")):
                         print("[V] Adding user " + nuser["login"] + " (parent " + user.username + ")")
 
             # Increment page
