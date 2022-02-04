@@ -103,7 +103,10 @@ Inside of the web interface, a settings model should be visible. The following s
 * **scan_time_min** - The minimum number of seconds to wait after parsing a batch of users.
 * **scan_time_max** - The maximum number of seconds to wait after parsing a batch of users.
 * **follow** - Whether to follow users or not (should be "1" or "0").
-* **verbose** - Whether to output additional information (should be "1" or "0").
+* **verbose** - Verbose level for stdout (see levels below).
+1. \+ Notification when a target user follows another user.
+1. \+ Notification when a target user unfollows a user due to being on the follower list or purge.
+1. \+ Notification when users are automatically created from follow spread.
 * **user_agent** - The User Agent used to connect to the GitHub API.
 
 ## FAQ
