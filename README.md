@@ -71,6 +71,9 @@ Inside of the web interface, a settings model should be visible. The following s
 * **user_agent** - The User Agent used to connect to the GitHub API.
 * **seed** - Whether to seed (add any existing user's followers to the user list).
 * **seed_min_free** - If above 0 and seeding is enabled, seeding will only occur when the amount of new users (users who haven't been followed by any target users) is below this value.
+* **max_api_fails** - The max amount of GitHub API fails before stopping the bot for a period of time based off of below (0 = disable).
+* **lockout_wait_min** - When the amount of fails exceeds max API fails, it will wait this time minimum in minutes until starting up again.
+* **lockout_wait_max** - When the amount of fails exceeds max API fails, it will wait this time maximum in minutes until starting up again.
 
 ## Installation
 Installation should be performed like a regular Django application. This application uses SQLite as the database. You can read more about Django [here](https://docs.djangoproject.com/en/4.0/intro/tutorial01/). I would recommend the following commands.
