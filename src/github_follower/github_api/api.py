@@ -8,7 +8,7 @@ class GH_API():
         self.conn = None
         self.headers = {}
 
-        self.endpoint = 'https://api.github.co'
+        self.endpoint = 'https://api.github.com'
 
         self.method = "GET"
         self.url = "/"
@@ -30,6 +30,9 @@ class GH_API():
 
     def make_connection(self):
         self.conn = aiohttp.ClientSession()
+
+    def add_fail(self):
+        self.fails = self.fails + 1
 
     async def send_request(self):
         if self.method == "POST":
@@ -71,4 +74,8 @@ class GH_API():
         await self.send_request()
 
     async def close(self):
-        await self.conn.close()
+        try:
+            await self.conn.close()
+        except Exception as e:
+            print("[ERR] HTTP close error.")
+            print(e)

@@ -70,37 +70,42 @@ class User(models.Model):
     auto_added = models.BooleanField(editable = False, default = False)
 
     async def retrieve_github_id(self):
-        api = ga.GH_API()
+        if back_bone.parser.api is None:
+            back_bone.parser.api = ga.GH_API()
 
         if back_bone.parser.global_token is None or back_bone.parser.global_username is None:
             return
 
-        api.authenticate(back_bone.parser.global_username, back_bone.parser.global_token)
+        back_bone.parser.api.authenticate(back_bone.parser.global_username, back_bone.parser.global_token)
 
         # Send request.
         try:
-            await api.send('GET', '/users/' + self.username)
+            await back_bone.parser.api.send('GET', '/users/' + self.username)
         except Exception as e:
             print("[ERR] Failed to retrieve Github ID for user " + self.username + " (request failure).")
             print(e)
+
+            await back_bone.parser.api.close()
+            await back_bone.parser.do_fail()
 
             return
 
         # Read response.
         try:
-            resp = await api.retrieve_response()
+            resp = await back_bone.parser.api.retrieve_response()
         except Exception as e:
             print("[ERR] Failed to retrieve GitHub ID for user " + self.username + " (response failure).")
             print(e)
 
+            await back_bone.parser.api.close()
+            await back_bone.parser.do_fail()
+
             return
 
+        return_code = await back_bone.parser.api.retrieve_response_code()
+
         # Close connection.
-        try:
-            await api.close()
-        except Exception as e:
-            print("[ERR] HTTP close error.")
-            print(e)
+        await back_bone.parser.api.close()
 
         # Decode JSON.
         try:
@@ -147,34 +152,33 @@ class Target_User(models.Model):
             return
 
         # Make connection GitHub's API.
-        api = ga.GH_API()
+        if back_bone.parser.api is None:
+            back_bone.parser.api = ga.GH_API()
 
         # Authenticate
-        api.authenticate(self.user.username, self.token)
+        back_bone.parser.api.authenticate(self.user.username, self.token)
 
         # Send request.
         try:
-            await api.send('PUT', '/user/following/' + user.username)
+            await back_bone.parser.api.send('PUT', '/user/following/' + user.username)
         except Exception as e:
             print("[ERR] Failed to follow GitHub user " + user.username + " for " + self.user.username + " (request failure).")
             print(e)
 
-            await back_bone.parser.do_fail(api)
+            await back_bone.parser.api.close()
+            await back_bone.parser.do_fail()
 
             return
 
-        return_code = await api.retrieve_response_code()
+        return_code = await back_bone.parser.api.retrieve_response_code()
 
         # Close connection.
-        try:
-            await api.close()
-        except Exception as e:
-            print("[ERR] HTTP close error.")
-            print(e)
+        await back_bone.parser.api.close()
 
         # Check status code.
-        if return_code != 200:
-            await back_bone.parser.do_fail(api)
+        if return_code != 200 and return_code != 204:
+            print("NOT GOOD CODE => " + str(return_code))
+            await back_bone.parser.do_fail()
 
             return
 
@@ -192,34 +196,32 @@ class Target_User(models.Model):
             return
 
         # Make connection GitHub's API.
-        api = ga.GH_API()
+        if back_bone.parser.api is None:
+            back_bone.parser.api = ga.GH_API()
 
         # Authenticate
-        api.authenticate(self.user.username, self.token)
+        back_bone.parser.api.authenticate(self.user.username, self.token)
 
         # Send request.
         try:
-            await api.send('DELETE', '/user/following/' + user.username)
+            await back_bone.parser.api.send('DELETE', '/user/following/' + user.username)
         except Exception as e:
             print("[ERR] Failed to unfollow GitHub user " + user.username + " for " + self.user.username + " (request failure).")
             print(e)
 
-            await back_bone.parser.do_fail(api)
+            await back_bone.parser.api.close()
+            await back_bone.parser.do_fail()
 
             return
 
-        return_code = await api.retrieve_response_code()
+        return_code = await back_bone.parser.api.retrieve_response_code()
 
         # Close connection.
-        try:
-            await api.close()
-        except Exception as e:
-            print("[ERR] HTTP close error.")
-            print(e)
+        await back_bone.parser.api.close()
 
         # Check status code.
-        if return_code != 200:
-            await back_bone.parser.do_fail(api)
+        if return_code != 200 and return_code != 204:
+            await back_bone.parser.do_fail()
 
             return
 

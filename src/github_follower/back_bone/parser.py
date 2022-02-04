@@ -23,6 +23,8 @@ class Parser(threading.Thread):
         self.running = False
         self.locked = False
 
+        self.api = None
+
         self.global_token = None
         self.global_username = None
 
@@ -74,19 +76,39 @@ class Parser(threading.Thread):
             return list(otype.objects.filter(**params))
 
 
-    async def do_fail(self, api):
+    async def do_fail(self):
+        if self.api is None:
+            return
+
         # Increase fail count.
-        api.fails = api.fails + 1
+        self.api.add_fail()
+
+        try:
+            max_fails = int(await self.get_setting("max_api_fails"))
+        except Exception as e:
+            print("[ERR] parser.do_fail() :: Failed to receive max fails.")
+            print(e)
+
+            return
+
+        if int(await self.get_setting("verbose")) >= 3:
+            print("[VVV] Adding fail (" + str(self.api.fails) + " > " + str(max_fails) + ").")
         
         #  If fail count exceeds max fails setting, set locked to True and stop everything.
-        if api.fails > int(await self.get_setting("max_api_fails")):
+        if self.api.fails >= max_fails:
             self.running = False
             self.locked = True
 
-            # Run lockout task in background.
-            await self.run_locked_task()
+            if int(await self.get_setting("verbose")) >= 1:
+                print("[V] Bot stopped due to fail count exceeding. Waiting specified time frame until starting again.")
 
-            return
+            # Run lockout task in background.
+            try:
+                await self.run_locked_task()
+            except Exception as e:
+                print("[ERR] parser.do_fail() :: Failed to lock bot.")
+
+        return
 
     async def retrieve_and_save_followers(self, user):
         import gf.models as mdl
@@ -134,45 +156,48 @@ class Parser(threading.Thread):
         # Create a loop and go through.
         while True:
             # Make new connection got GitHub API and set user agent.
-            api = ga.GH_API()
+            if self.api is None:
+                self.api = ga.GH_API()
 
             # Authenticate globally.
             if self.global_username is not None and self.global_token is not None:
-                api.authenticate(self.global_username, self.global_token)
+                self.api.authenticate(self.global_username, self.global_token)
 
             # Try sending request to GitHub API.
             try:
-                await api.send("GET", '/users/' + user.username + '/followers?page=' + str(page))
+                await self.api.send("GET", '/users/' + user.username + '/followers?page=' + str(page))
             except Exception as e:
                 print("[ERR] Failed to retrieve user's following list for " + user.username + " (request failure).")
                 print(e)
 
-                await self.do_fail(api)
+                await self.api.close()
+                await self.do_fail()
 
                 break
 
-            return_code = await api.retrieve_response_code()
+            return_code = await self.api.retrieve_response_code()
 
             # Retrieve response.
             try:
-                resp = await api.retrieve_response()
+                resp = await self.api.retrieve_response()
             except Exception as e:
                 print("[ERR] Failed to retrieve user's following list for " + user.username + " (response failure).")
                 print(e)
 
-                await self.do_fail(api)
+                await self.api.close()
+                await self.do_fail()
 
                 break
 
             # Check status code.
-            if await return_code != 200:
-                await self.do_fail(api)
+            if await return_code != 200 and return_code != 204:
+                await self.do_fail()
 
                 break
 
             # Close connection.
             try:
-                await api.close()
+                await self.api.close()
             except Exception as e:
                 print("[ERR] HTTP close error.")
                 print(e)
@@ -316,14 +341,17 @@ class Parser(threading.Thread):
         import gf.models as mdl
 
         while True:
+            await asyncio.sleep(1)
+
             tusers = await self.get_target_users()
 
             for user in tusers:
                 # Use GitHub API.
-                api = ga.GH_API()
+                if self.api is None:
+                    self.api = ga.GH_API()
 
                 # Authenticate.
-                api.authenticate(user.user.username, user.token)
+                self.api.authenticate(user.user.username, user.token)
                 
                 page = 1
 
@@ -331,38 +359,36 @@ class Parser(threading.Thread):
                 while True:
                     # Make connection.
                     try:
-                        await api.send("GET", '/user/followers?page=' + str(page))
+                        await self.api.send("GET", '/user/followers?page=' + str(page))
                     except Exception as e:
                         print("[ERR] Failed to retrieve target user's followers list for " + user.user.username + " (request failure).")
                         print(e)
 
-                        await self.do_fail(api)
+                        await self.api.close()
+                        await self.do_fail()
 
                         break
 
                     # Retrieve results.
                     try:
-                        resp = await api.retrieve_response()
+                        resp = await self.api.retrieve_response()
                     except Exception as e:
                         print("[ERR] Failed to retrieve target user's followers list for " + user.user.username + " (response failure).")
                         print(e)
-
-                        await self.do_fail(api)
-
+                        
+                        await self.api.close()
+                        await self.do_fail()
+                        
                         break
                         
-                    return_code = await api.retrieve_response_code()
+                    return_code = await self.api.retrieve_response_code()
 
                     # Close connection.
-                    try:
-                        await api.close()
-                    except Exception as e:
-                        print("[ERR] HTTP close error.")
-                        print(e)
+                    await self.api.close()
 
                     # Check status code.
-                    if return_code != 200:
-                        await self.do_fail(api)
+                    if return_code != 200 and return_code != 204:
+                        await self.do_fail()
 
                         break
 
@@ -519,16 +545,21 @@ class Parser(threading.Thread):
                     self.purge_following_task.cancel()
                     self.purge_following_task = None
 
+                if self.retrieve_followers_task is not None and self.retrieve_followers_task in asyncio.all_tasks():
+                    self.retrieve_followers_task.cancel()
+                    self.retrieve_followers_task = None
+
             # Sleep for a second to avoid CPU consumption.
             await asyncio.sleep(1)
 
     async def run_locked(self):
         wait_time = float(random.randint(int(await self.get_setting("lockout_wait_min")), int(await self.get_setting("lockout_wait_max"))) * 60)
 
-        asyncio.sleep(wait_time)
+        await asyncio.sleep(wait_time)
 
         self.locked = False
         self.running = True
+        self.api.fails = 0
 
     async def run_locked_task(self):
         asyncio.create_task(self.run_locked())
