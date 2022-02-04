@@ -4,7 +4,6 @@ This bot is a WIP. There are still many features I plan to add and code I need t
 
 The bot technically works, but it is missing the following features that will be added.
 
-* No auto-purge functionality for users you're following (e.g. unfollow them after a period of days).
 * A better randomized waiting time system including "active hours".
 * Unexpected behavior is possible.
 
@@ -27,11 +26,14 @@ The bot works as the following.
 
 * Runs as a background task in the Django application.
 * Management of bot is done in the Django application's web admin center.
-* After installing, add users. 
-* After adding starting users, add them to the target and seed users list (the target user is the user who will be following others and the seed user is used to start off the spread of the invite list based off of the user's followers list).
-* New/least updated users are parsed first up to the max users setting value followed by a random range wait time.
+* After installing, you must add a super user via Django (e.g. `python3 manage.py createsuperuser`).
+* Navigate to the admin web center and add your target user (the user who will be following others) and seeders (users that start out the follow spread).
+* After adding the users, add them to the target and seed user list.
+* New/least updated users are parsed first up to the max users setting value followed by a random range wait scan time.
 * A task is ran in the background for parsed users to make sure they're being followed by target users.
-* Each follow and unfollow is followed by a random range wait time.
+* Another task is ran in the background to retrieve target user's followers and if the Remove Following setting is on, it will automatically unfollow these specific users for the target users.
+* Another task is ran that checks all users a target user is following and unfollows the user after *x* days (0 = doesn't unfollow).
+* Each follow and unfollow is followed by a random range wait time which may be configured.
 
 ## Requirements
 The following Python models are required and I'd recommend Python version 3.8 or above since that's what I've tested with.
