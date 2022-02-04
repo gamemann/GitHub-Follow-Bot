@@ -165,7 +165,7 @@ class Parser(threading.Thread):
                     # Save user.
                     await sync_to_async(new_user.save)()
 
-                    if bool(await self.get_setting("verbose")):
+                    if bool(int(await self.get_setting("verbose"))):
                         print("[V] Adding user " + nuser["login"] + " (parent " + user.username + ")")
 
             # Increment page
@@ -422,7 +422,7 @@ class Parser(threading.Thread):
         # Create a loop until the program ends.
         while True:
             # Check if we're enabled.
-            if bool(await self.get_setting("enabled")):
+            if bool(int(await self.get_setting("enabled"))):
                 # Run parse users task.
                 if self.parse_users_task is None or self.parse_users_task.done():
                     self.parse_users_task = asyncio.create_task(self.parse_users())
