@@ -205,8 +205,13 @@ class Parser(threading.Thread):
             await asyncio.sleep(float(random.randint(int(await self.get_setting("wait_time_follow_min")), int(await self.get_setting("wait_time_follow_max")))))
 
     async def parse_user(self, user):
-        if self.retrieve_and_save_task is None or self.retrieve_and_save_task.done():
-            self.retrieve_and_save_task = asyncio.create_task(self.retrieve_and_save_followers(user))
+        if bool(int(await self.get_setting("seed"))):
+            if self.retrieve_and_save_task is None or self.retrieve_and_save_task.done():
+                self.retrieve_and_save_task = asyncio.create_task(self.retrieve_and_save_followers(user))
+        else:
+            if self.retrieve_and_save_task is not None and self.retrieve_and_save_task in asyncio.all_tasks():
+                self.retrieve_and_save_task.cancel()
+                self.retrieve_and_save_task = None
 
         follow_targets_task = asyncio.create_task(self.loop_and_follow_targets(user))
 

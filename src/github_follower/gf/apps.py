@@ -28,6 +28,7 @@ class GfConfig(AppConfig):
             Setting.create("follow", "1", False)
             Setting.create("verbose", "1", False)
             Setting.create("user_agent", "GitHub-Follower", False)
+            Setting.create("seed", "1", False)
 
             bb.parser.start()
         else:
