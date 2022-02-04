@@ -8,7 +8,7 @@ class GH_API():
         self.conn = None
         self.headers = {}
 
-        self.endpoint = 'https://api.github.com'
+        self.endpoint = 'https://api.github.co'
 
         self.method = "GET"
         self.url = "/"
@@ -48,18 +48,24 @@ class GH_API():
 
         res = None
         status = None
-        
-        # Send request.
-        if method == "POST":
-            res = await conn.post(self.endpoint + url, headers = headers)
-        elif method == "PUT":
-            res = await conn.put(self.endpoint + url, headers = headers)
-        elif method == "DELETE":
-            res = await conn.delete(self.endpoint + url, headers = headers)
-        else:
-            res = await conn.get(self.endpoint + url, headers = headers)
+        failed = False
 
-        if res is not None:
+        # Send request.
+        try:
+            if method == "POST":
+                res = await conn.post(self.endpoint + url, headers = headers)
+            elif method == "PUT":
+                res = await conn.put(self.endpoint + url, headers = headers)
+            elif method == "DELETE":
+                res = await conn.delete(self.endpoint + url, headers = headers)
+            else:
+                res = await conn.get(self.endpoint + url, headers = headers)
+        except Exception as e:
+            print(e)
+
+            failed = True
+
+        if not failed and res is not None:
             status = res.status
             res = await res.text()
 
@@ -73,7 +79,8 @@ class GH_API():
             return [None, 0]
         else:
             # Set fails to 0 indicating we closed the connection.
-            self.fails = 0
+            if not failed and res is not None:
+                self.fails = 0
         
         # Return list (response, response code)
         return [res, status]
