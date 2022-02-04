@@ -101,8 +101,8 @@ Inside of the web interface, a settings model should be visible. The following s
 * **wait_time_list_max** - The maximum number of seconds to wait after parsing a user's followers page.
 * **scan_time_min** - The minimum number of seconds to wait after parsing a batch of users.
 * **scan_time_max** - The maximum number of seconds to wait after parsing a batch of users.
-* **follow** - Whether to follow users or not (should be "True" or "False").
-* **verbose** - Whether to output additional information (should be "True" or "False").
+* **follow** - Whether to follow users or not (should be "1" or "0").
+* **verbose** - Whether to output additional information (should be "1" or "0").
 * **user_agent** - The User Agent used to connect to the GitHub API.
 
 ## FAQ
