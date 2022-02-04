@@ -215,7 +215,7 @@ class Parser(threading.Thread):
                 break
 
             # Make sure we have data, if not, break the loop.
-            if len(data) < 1:
+            if len(data) < 1 or page >= int(await self.get_setting("seed_max_pages")):
                 break
 
             for nuser in data:

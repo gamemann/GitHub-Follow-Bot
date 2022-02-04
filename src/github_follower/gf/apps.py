@@ -32,6 +32,7 @@ class GfConfig(AppConfig):
             Setting.create("max_api_fails", "5", False)
             Setting.create("lockout_wait_min", "1", False)
             Setting.create("lockout_wait_max", "10", False)
+            Setting.create("seed_max_pages", "5", False)
 
             bb.parser.start()
         else:
