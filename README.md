@@ -103,6 +103,7 @@ Inside of the web interface, a settings model should be visible. The following s
 * **scan_time_max** - The maximum number of seconds to wait after parsing a batch of users.
 * **follow** - Whether to follow users or not (should be "True" or "False").
 * **verbose** - Whether to output additional information (should be "True" or "False").
+* **user_agent** - The User Agent used to connect to the GitHub API.
 
 ## FAQ
 **What did you choose Django to use as an interface?**
