@@ -249,6 +249,9 @@ class Seeder(models.Model):
     user = models.ForeignKey(User, on_delete = models.CASCADE)
 
     def save(self, *args, **kwargs):
+        # We need to seed user.
+        self.user.needs_to_seed = True
+    
         try:
             super().save(*args, **kwargs)
         except Exception as e:
@@ -256,12 +259,6 @@ class Seeder(models.Model):
             print(e)
 
             return
-
-        # We need to seed user.
-        self.user.needs_to_seed = True
-
-        # Save user.
-        self.save()
 
     def __str__(self):
         return self.user.username
