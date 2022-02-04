@@ -12,7 +12,6 @@ class GfConfig(AppConfig):
 
         # Check if first thread has started since we want to spin it up on the second thread in development.
         if env is not None:
-
             from .models import Setting
 
             # Set settings. defaults.
@@ -25,6 +24,7 @@ class GfConfig(AppConfig):
             Setting.create("scan_time_max", "60", False)
             Setting.create("follow", "1", False)
             Setting.create("verbose", "1", False)
+            Setting.create("user_agent", "1", False)
 
             bb.parser.start()
         else:

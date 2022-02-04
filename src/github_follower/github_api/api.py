@@ -4,6 +4,7 @@ import base64
 
 class GH_API():
     def __init__(self):
+        import gf.models as mdl
         self.conn = None
         self.headers = {}
 
@@ -14,7 +15,13 @@ class GH_API():
 
         self.response = None
 
-        self.add_header("User-Agent", "GitHub-Follower")
+        # Default user agent.
+        user_agent = mdl.Setting.get("user_agent")
+
+        if user_agent is None:
+            user_agent = "GitHub-Follower"
+
+        self.add_header("User-Agent", user_agent)
 
     def add_header(self, key, val):
         self.headers[key] = val
