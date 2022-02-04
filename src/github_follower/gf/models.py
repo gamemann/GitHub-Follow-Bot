@@ -11,7 +11,7 @@ import github_api as ga
 from asgiref.sync import sync_to_async
 
 class Setting(models.Model):
-    key = models.CharField(verbose_name = "Key", help_text="The setting key.", max_length = 64)
+    key = models.CharField(verbose_name = "Key", help_text="The setting key.", max_length = 64, unique = True)
     val = models.CharField(verbose_name = "Value", help_text="The setting value.", max_length = 64)
 
     def create(key, val, override):
