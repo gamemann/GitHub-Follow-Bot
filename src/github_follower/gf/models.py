@@ -141,7 +141,7 @@ class Target_User(models.Model):
 
     async def follow_user(self, user):
         # Check if we should follow.
-        if not bool(await sync_to_async(Setting.get)(key = "follow")):
+        if not bool(int(await sync_to_async(Setting.get)(key = "follow"))):
             return
 
         # Make connection GitHub's API.
@@ -171,7 +171,7 @@ class Target_User(models.Model):
 
         await sync_to_async(new_following.save)()
 
-        if bool(await sync_to_async(Setting.get)(key = "verbose")):
+        if bool(int(await sync_to_async(Setting.get)(key = "verbose"))):
             print("[V] Following user " + user.username + " for " + self.user.username + ".")
 
     async def unfollow_user(self, user):
@@ -211,7 +211,7 @@ class Target_User(models.Model):
             # Save.
             await sync_to_async(following.save)()
 
-        if bool(await sync_to_async(Setting.get)(key = "verbose")):
+        if bool(int(await sync_to_async(Setting.get)(key = "verbose"))):
             print("[V] Unfollowing user " + user.username + " from " + self.user.username + ".")
 
     def __str__(self):
