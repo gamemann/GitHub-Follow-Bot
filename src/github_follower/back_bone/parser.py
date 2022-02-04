@@ -86,6 +86,29 @@ class Parser(threading.Thread):
         if targeted:
             return
 
+        # Make sure we don't have enough free users (users who aren't following anybody)..
+        free_users = int(await self.get_setting("seed_min_free"))
+
+        if free_users > 0:
+            target_users = await self.get_target_users()
+
+            # Loop for target GIDs to exclude from parsing list.
+            gids = []
+
+            for user in target_users:
+                gids.append(user.user.gid)
+
+            users = await self.get_users(gids)
+            user_cnt = 0
+
+            for user in users:
+                if len(await self.get_filtered(mdl.Following, {"user": user})) < 1:
+                    user_cnt = user_cnt + 1
+
+            # If we have enough free users, 
+            if user_cnt > free_users:
+                return
+
         page = 1
 
         # Create a loop and go through.
