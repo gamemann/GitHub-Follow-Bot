@@ -85,9 +85,9 @@ python3 manage.py runserver 0.0.0.0:8000
 python3 manage.py createsuperuser
 ```
 
-The web interface should be located at `http://<host/ip>:<port>/admin`. For example.
+The web interface should be located at `http://<host/ip>:<port>`. For example.
 
-http://localhost:8000/admin
+http://localhost:8000
 
 While you could technically run the Django application's development server for this bot since only the settings are configured through there, Django recommends reading [this](https://docs.djangoproject.com/en/3.2/howto/deployment/) for production use.
 
