@@ -80,44 +80,28 @@ class User(models.Model):
 
         back_bone.parser.api.authenticate(back_bone.parser.global_username, back_bone.parser.global_token)
 
+        res = None
+
         # Send request.
         try:
-            await back_bone.parser.api.send('GET', '/users/' + self.username)
+            res = await back_bone.parser.api.send('GET', '/users/' + self.username)
         except Exception as e:
             print("[ERR] Failed to retrieve Github ID for user " + self.username + " (request failure).")
             print(e)
 
-            await back_bone.parser.api.close()
             await back_bone.parser.do_fail()
 
             return
-
-        # Read response.
-        try:
-            resp = await back_bone.parser.api.retrieve_response()
-        except Exception as e:
-            print("[ERR] Failed to retrieve GitHub ID for user " + self.username + " (response failure).")
-            print(e)
-
-            await back_bone.parser.api.close()
-            await back_bone.parser.do_fail()
-
-            return
-
-        return_code = await back_bone.parser.api.retrieve_response_code()
 
         # Check status code.
-        if return_code != 200 and return_code != 204:
+        if res[1] != 200 and res[1] != 204:
             await back_bone.parser.do_fail()
 
             return
-
-        # Close connection.
-        await back_bone.parser.api.close()
 
         # Decode JSON.
         try:
-            data = json.loads(resp)
+            data = json.loads(res[0])
         except json.JSONDecodeError as e:
             print("[ERR] Failed to retrieve GitHub ID for user " + self.username + " (JSON decode failure).")
             print(e)
@@ -166,25 +150,21 @@ class Target_User(models.Model):
         # Authenticate
         back_bone.parser.api.authenticate(self.user.username, self.token)
 
+        res = None
+
         # Send request.
         try:
-            await back_bone.parser.api.send('PUT', '/user/following/' + user.username)
+            res = await back_bone.parser.api.send('PUT', '/user/following/' + user.username)
         except Exception as e:
             print("[ERR] Failed to follow GitHub user " + user.username + " for " + self.user.username + " (request failure).")
             print(e)
 
-            await back_bone.parser.api.close()
             await back_bone.parser.do_fail()
 
             return
 
-        return_code = await back_bone.parser.api.retrieve_response_code()
-
-        # Close connection.
-        await back_bone.parser.api.close()
-
         # Check status code.
-        if return_code != 200 and return_code != 204:
+        if res[1] != 200 and res[1] != 204:
             await back_bone.parser.do_fail()
 
             return
@@ -209,25 +189,21 @@ class Target_User(models.Model):
         # Authenticate
         back_bone.parser.api.authenticate(self.user.username, self.token)
 
+        res = None
+
         # Send request.
         try:
-            await back_bone.parser.api.send('DELETE', '/user/following/' + user.username)
+            res = await back_bone.parser.api.send('DELETE', '/user/following/' + user.username)
         except Exception as e:
             print("[ERR] Failed to unfollow GitHub user " + user.username + " for " + self.user.username + " (request failure).")
             print(e)
 
-            await back_bone.parser.api.close()
             await back_bone.parser.do_fail()
 
             return
 
-        return_code = await back_bone.parser.api.retrieve_response_code()
-
-        # Close connection.
-        await back_bone.parser.api.close()
-
         # Check status code.
-        if return_code != 200 and return_code != 204:
+        if res[1] != 200 and res[1] != 204:
             await back_bone.parser.do_fail()
 
             return

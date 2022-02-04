@@ -27,35 +27,8 @@ class GH_API():
 
     def add_header(self, key, val):
         self.headers[key] = val
-
-    async def make_connection(self):
-        # Check connection first.
-        if self.conn is not None:
-            if not self.conn.closed:
-                await self.close()
-
-            self.conn = None
-
-        self.conn = aiohttp.ClientSession()
-
     def add_fail(self):
         self.fails = self.fails + 1
-
-    async def send_request(self):
-        if self.method == "POST":
-            self.response = await self.conn.post(self.endpoint + self.url, headers = self.headers)
-        elif self.method == "PUT":
-            self.response = await self.conn.put(self.endpoint + self.url, headers = self.headers)
-        elif self.method == "DELETE":
-            self.response = await self.conn.delete(self.endpoint + self.url, headers = self.headers)
-        else:
-            self.response = await self.conn.get(self.endpoint + self.url, headers = self.headers)
-
-    async def retrieve_response(self):
-        return await self.response.text()
-
-    async def retrieve_response_code(self):
-        return self.response.status
 
     def authenticate(self, user, token):
         mix = user + ":" + token
@@ -64,30 +37,43 @@ class GH_API():
 
         self.add_header("Authorization", "Basic " + r.decode('ascii'))
 
-    async def send(self, method = "GET", url = "/", headers = None):
+    async def send(self, method = "GET", url = "/", headers = {}):
         # Make connection.
-        await self.make_connection()
+        conn = aiohttp.ClientSession()
 
         # Insert additional headers.
-        if headers is not None:
-            for k, v in headers:
-                self.headers[k] = v
+        if self.headers is not None:
+            for k, v in self.headers.items():
+                headers[k] = v
 
-        # Make method and URL.
-        self.method = method
-        self.url = url
-
+        res = None
+        status = None
+        
         # Send request.
-        await self.send_request()
+        if method == "POST":
+            res = await conn.post(self.endpoint + url, headers = headers)
+        elif method == "PUT":
+            res = await conn.put(self.endpoint + url, headers = headers)
+        elif method == "DELETE":
+            res = await conn.delete(self.endpoint + url, headers = headers)
+        else:
+            res = await conn.get(self.endpoint + url, headers = headers)
 
-    async def close(self):
+        if res is not None:
+            status = res.status
+            res = await res.text()
+
+        # Close connection.
         try:
-            await self.conn.close()
+            await conn.close()
         except Exception as e:
             print("[ERR] HTTP close error.")
             print(e)
 
-            return
-
-        # Set fails to 0 indicating we closed the connection.
-        self.fails = 0
+            return [None, 0]
+        else:
+            # Set fails to 0 indicating we closed the connection.
+            self.fails = 0
+        
+        # Return list (response, response code)
+        return [res, status]

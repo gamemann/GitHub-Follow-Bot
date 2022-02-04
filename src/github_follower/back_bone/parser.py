@@ -166,48 +166,28 @@ class Parser(threading.Thread):
             if self.global_username is not None and self.global_token is not None:
                 self.api.authenticate(self.global_username, self.global_token)
 
+            res = None
+
             # Try sending request to GitHub API.
             try:
-                await self.api.send("GET", '/users/' + user.username + '/followers?page=' + str(page))
+                res = await self.api.send("GET", '/users/' + user.username + '/followers?page=' + str(page))
             except Exception as e:
                 print("[ERR] Failed to retrieve user's following list for " + user.username + " (request failure).")
                 print(e)
 
-                await self.api.close()
-                await self.do_fail()
-
-                break
-
-            return_code = await self.api.retrieve_response_code()
-
-            # Retrieve response.
-            try:
-                resp = await self.api.retrieve_response()
-            except Exception as e:
-                print("[ERR] Failed to retrieve user's following list for " + user.username + " (response failure).")
-                print(e)
-
-                await self.api.close()
                 await self.do_fail()
 
                 break
 
             # Check status code.
-            if await return_code != 200 and return_code != 204:
+            if await res[1] != 200 and res[1] != 204:
                 await self.do_fail()
 
                 break
 
-            # Close connection.
-            try:
-                await self.api.close()
-            except Exception as e:
-                print("[ERR] HTTP close error.")
-                print(e)
-
             # Decode JSON.
             try:
-                data = json.loads(resp)
+                data = json.loads(res[0])
             except json.JSONDecodeError as e:
                 print("[ERR] Failed to retrieve user's following list for " + self.username + " (JSON decode failure).")
                 print(e)
@@ -365,44 +345,28 @@ class Parser(threading.Thread):
 
                 # We'll want to create a loop through of the target user's followers.
                 while True:
+                    res = None
+
                     # Make connection.
                     try:
-                        await self.api.send("GET", '/user/followers?page=' + str(page))
+                        res = await self.api.send("GET", '/user/followers?page=' + str(page))
                     except Exception as e:
                         print("[ERR] Failed to retrieve target user's followers list for " + user.user.username + " (request failure).")
                         print(e)
 
-                        await self.api.close()
                         await self.do_fail()
 
                         break
-
-                    # Retrieve results.
-                    try:
-                        resp = await self.api.retrieve_response()
-                    except Exception as e:
-                        print("[ERR] Failed to retrieve target user's followers list for " + user.user.username + " (response failure).")
-                        print(e)
-                        
-                        await self.api.close()
-                        await self.do_fail()
-                        
-                        break
-                        
-                    return_code = await self.api.retrieve_response_code()
-
-                    # Close connection.
-                    await self.api.close()
 
                     # Check status code.
-                    if return_code != 200 and return_code != 204:
+                    if res[1] != 200 and res[1] != 204:
                         await self.do_fail()
 
                         break
 
                     # Decode JSON.
                     try:
-                        data = json.loads(resp)
+                        data = json.loads(res[0])
                     except json.JSONDecodeError as e:
                         print("[ERR] Failed to retrieve target user's followers list for " + user.user.username + " (JSON decode failure).")
                         print(e)
