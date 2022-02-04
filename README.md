@@ -108,6 +108,7 @@ Inside of the web interface, a settings model should be visible. The following s
 1. \+ Notification when a target user unfollows a user due to being on the follower list or purge.
 1. \+ Notification when users are automatically created from follow spread.
 * **user_agent** - The User Agent used to connect to the GitHub API.
+* **seed** - Whether to seed (add any existing user's followers to the user list).
 
 ## FAQ
 **What did you choose Django to use as an interface?**
