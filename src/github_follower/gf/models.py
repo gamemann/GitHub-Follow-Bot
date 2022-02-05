@@ -177,6 +177,18 @@ class Target_User(models.Model):
         if int(await sync_to_async(Setting.get)(key = "verbose")) >= 1:
             print("[V] Following user " + user.username + " for " + self.user.username + ".")
 
+    @sync_to_async
+    def get_following(self, user):
+        res = None
+
+        try:
+            res = list(Following.objects.filter(target_user = self, user = user))
+            res = res[0]
+        except Exception as e:
+            res = None
+
+        return res
+
     async def unfollow_user(self, user):
         # Check if we should unfollow.
         if not self.allow_unfollow:
@@ -208,14 +220,9 @@ class Target_User(models.Model):
 
             return
 
+        following = await self.get_following(user)
+
         # Set user as purged.
-        following = None
-
-        try:
-            following = await sync_to_async(Following.objects.get)(target_user = self, user = user)
-        except Exception:
-            following = None
-
         if following is not None:
             following.purged = True
 
