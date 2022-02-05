@@ -392,7 +392,7 @@ class Parser(threading.Thread):
                         except Exception:
                             exists = False
 
-                        if not exists or muser is None:
+                        if exists and muser is None:
                             exists = False
 
                         if not exists:
@@ -413,8 +413,8 @@ class Parser(threading.Thread):
 
                         # Make a new follower entry.
                         if not exists:
-                            new_user = mdl.Follower(target_user = user, user = muser)
-                            await sync_to_async(new_user.save)()
+                            new_follower = mdl.Follower(target_user = user, user = muser)
+                            await sync_to_async(new_follower.save)()
 
                         # Check if the same user is following our target.
                         exists = True
