@@ -315,6 +315,7 @@ class Parser(threading.Thread):
                     users = await self.get_filtered(mdl.Following, {"target_user": tuser, "purged": False}, related = ('user'), sort = ('time_added'))
                 except Exception:
                     users = None
+
                 # Make sure we have users and loop.
                 if users is not None:
                     for user in users:
@@ -323,6 +324,9 @@ class Parser(threading.Thread):
 
                         # Check if we're expired.
                         if now > expired:
+                            if int(await self.get_setting("verbose")) >= 3:
+                                    print("[VVV] " + user.user.username + " has expired.")
+
                             # Unfollow used and mark them as purged.
                             await tuser.unfollow_user(user.user)
 
