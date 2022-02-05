@@ -180,7 +180,7 @@ class Parser(threading.Thread):
                 break
 
             # Check status code.
-            if await res[1] != 200 and res[1] != 204:
+            if res[1] != 200 and res[1] != 204:
                 await self.do_fail()
 
                 break
