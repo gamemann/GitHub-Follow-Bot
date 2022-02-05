@@ -244,6 +244,11 @@ class Follower(models.Model):
 
     time_added = models.DateTimeField(editable = False, auto_now_add = True)
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields = ['target_user', 'user'], name = "follower-target-user")
+        ]
+
     def __str__(self):
         return self.user.username
 
@@ -253,6 +258,11 @@ class Following(models.Model):
     purged = models.BooleanField(editable = False, default = False)
 
     time_added = models.DateTimeField(editable = False, auto_now_add = True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields = ['target_user', 'user'], name="following-target-user")
+        ]
 
     def __str__(self):
         return self.user.username
