@@ -304,7 +304,7 @@ class Parser(threading.Thread):
                 users = None
 
                 try:
-                    users = await self.get_filtered(mdl.Following, {"target_user": tuser, "purged": False})
+                    users = await self.get_filtered(mdl.Following, {"target_user": tuser, "purged": False}).get_related("user")
                 except Exception:
                     users = None
 
