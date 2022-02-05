@@ -69,11 +69,19 @@ class Parser(threading.Thread):
         return val
 
     @sync_to_async
-    def get_filtered(self, otype, params = {}):
+    def get_filtered(self, otype, params = {}, related = [], sort = []):
         if len(params) < 1:
-            return list(otype.objects.all())
+            return list(otype.objects.all().distinct())
         else:
-            return list(otype.objects.filter(**params))
+            items = otype.objects.filter(**params)
+
+            if len(related) > 0:
+                items = items.select_related(related)
+
+            if len(sort) > 0:
+                items = items.order_by(sort)
+
+            return list(items)
 
 
     async def do_fail(self):
@@ -304,10 +312,9 @@ class Parser(threading.Thread):
                 users = None
 
                 try:
-                    users = await self.get_filtered(mdl.Following, {"target_user": tuser, "purged": False}).get_related("user")
+                    users = await self.get_filtered(mdl.Following, {"target_user": tuser, "purged": False}, related = ('user'), sort = ('time_added'))
                 except Exception:
                     users = None
-
                 # Make sure we have users and loop.
                 if users is not None:
                     for user in users:
@@ -325,6 +332,11 @@ class Parser(threading.Thread):
                             # Save user.
                             await sync_to_async(user.save)()
 
+                            # Wait follow time.
+                            await asyncio.sleep(float(random.randint(int(await self.get_setting("wait_time_follow_min")), int(await self.get_setting("wait_time_follow_max")))))
+
+            await asyncio.sleep(float(random.randint(int(await self.get_setting("wait_time_list_min")), int(await self.get_setting("wait_time_list_max")))))
+        
     async def retrieve_followers(self):
         import gf.models as mdl
 
