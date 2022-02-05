@@ -317,7 +317,7 @@ class Parser(threading.Thread):
                         # Check if we're expired.
                         if now > expired:
                             # Unfollow used and mark them as purged.
-                            await tuser.unfollow_user(user)
+                            await tuser.unfollow_user(user.user)
 
                             # Set purged to true.
                             user.purged = True
