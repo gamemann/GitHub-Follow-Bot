@@ -420,7 +420,7 @@ class Parser(threading.Thread):
                         exists = True
 
                         try:
-                            tmp = await self.get_filtered(mdl.Following, {"target_user": user, "user": muser})
+                            tmp = await self.get_filtered(mdl.Following, {"target_user": user, "user": muser, "purged": False})
                             tmp = tmp[0]
                         except Exception:
                             exists = False
