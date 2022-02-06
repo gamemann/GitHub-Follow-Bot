@@ -120,7 +120,7 @@ class User(models.Model):
         try:
             super().save(*args, **kwargs)
         except Exception as e:
-            print("[ERR] Error saving user.")
+            print("[ERR] Error saving user (" + self.username + ").")
             print(e)
 
             return
@@ -171,9 +171,7 @@ class Target_User(models.Model):
             return
 
         # Save to following.
-        new_following = Following(target_user = self, user = user)
-
-        await sync_to_async(new_following.save)()
+        await sync_to_async(Following.objects.create)(target_user = self, user = user)
 
         if int(await sync_to_async(Setting.get)(key = "verbose")) >= 1:
             print("[V] Following user " + user.username + " for " + self.user.username + ".")

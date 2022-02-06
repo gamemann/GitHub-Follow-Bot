@@ -241,10 +241,7 @@ class Parser(threading.Thread):
 
                 if not exists:
                     # Create new user by username.
-                    new_user = mdl.User(gid = nuser["id"], username = nuser["login"], parent = user.gid, auto_added = True)
-
-                    # Save user.
-                    await sync_to_async(new_user.save)()
+                    await sync_to_async(mdl.User.objects.create)(gid = nuser["id"], username = nuser["login"], parent = user.gid, auto_added = True)
 
                     if int(await self.get_setting("verbose")) >= 3:
                         print("[V] Adding user " + nuser["login"] + " (parent " + user.username + ")")
@@ -327,7 +324,7 @@ class Parser(threading.Thread):
                         # Check if we're expired.
                         if now > expired:
                             if int(await self.get_setting("verbose")) >= 3:
-                                    print("[VVV] " + user.user.username + " has expired.")
+                                print("[VVV] " + user.user.username + " has expired.")
 
                             # Unfollow used and mark them as purged.
                             await tuser.unfollow_user(user.user)
@@ -414,9 +411,7 @@ class Parser(threading.Thread):
                             exists = False
 
                         if not exists:
-                            muser = mdl.User(gid = fuser["id"], username = fuser["login"])
-                            muser.needs_parsing = False
-                            await sync_to_async(muser.save)()
+                            muser = await sync_to_async(mdl.User.objects.create)(gid = fuser["id"], username = fuser["login"], needs_parsing = False)
 
                         # Add to follower list if not already on it.
                         exists = True
@@ -432,8 +427,7 @@ class Parser(threading.Thread):
 
                         # Make a new follower entry.
                         if not exists:
-                            new_follower = mdl.Follower(target_user = user, user = muser)
-                            await sync_to_async(new_follower.save)()
+                            await sync_to_async(mdl.Follower.objects.create)(target_user = user, user = muser)
 
                         # Check if the same user is following our target.
                         exists = True
