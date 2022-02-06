@@ -65,6 +65,7 @@ class User(models.Model):
     username = models.CharField(verbose_name = "Username", help_text = "The GitHub username.", max_length = 64, unique = True)
 
     last_parsed = models.DateTimeField(editable = False, auto_now_add = False, null = True)
+    needs_parsing = models.BooleanField(editable = False, default = True)
 
     needs_to_seed = models.BooleanField(editable = False, default = False)
     auto_added = models.BooleanField(editable = False, default = False)

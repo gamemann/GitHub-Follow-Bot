@@ -43,10 +43,15 @@ class Parser(threading.Thread):
         asyncio.run(self.work())
 
     @sync_to_async
-    def get_users(self, gids):
+    def get_users(self, gids, need_parse = True):
         import gf.models as mdl
 
-        return list(mdl.User.objects.all().exclude(gid__in = gids).order_by('needs_to_seed', F('last_parsed').asc(nulls_first = True)))
+        res = mdl.User.objects.all().exclude(gid__in = gids).order_by('needs_to_seed', F('last_parsed').asc(nulls_first = True))
+
+        if need_parse:
+            res.filter(needs_parsing = True)
+
+        return list(res)
 
     @sync_to_async
     def get_seed_users(self):
@@ -413,6 +418,7 @@ class Parser(threading.Thread):
 
                         if not exists:
                             muser = mdl.User(gid = fuser["id"], username = fuser["login"])
+                            muser.needs_parsing = False
                             await sync_to_async(muser.save)()
 
                         # Add to follower list if not already on it.
