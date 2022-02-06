@@ -54,12 +54,6 @@ class Parser(threading.Thread):
         return list(res)
 
     @sync_to_async
-    def get_seed_users(self):
-        import gf.models as mdl
-
-        return list(mdl.Seeder.objects.all().select_related('user'))
-
-    @sync_to_async
     def get_target_users(self):
         import gf.models as mdl
 
@@ -425,9 +419,10 @@ class Parser(threading.Thread):
                         if exists and tmp is None:
                             exists = False
 
+                        await sync_to_async(user.save)()
+
                         # Make a new follower entry.
                         if not exists:
-                            await sync_to_async(user.save)()
                             await sync_to_async(mdl.Follower.objects.create)(target_user = user, user = muser)
 
                         # Check if the same user is following our target.
