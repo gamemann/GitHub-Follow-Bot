@@ -277,11 +277,8 @@ class Parser(threading.Thread):
             if exists:
                 continue
 
-            fuser = mdl.Following(target_user = tuser, user = user)
-            await sync_to_async(fuser.save)()
-
             # Follow target user.
-            await tuser.follow_user(fuser.user)
+            await tuser.follow_user(user)
 
             await asyncio.sleep(float(random.randint(int(await self.get_setting("wait_time_follow_min")), int(await self.get_setting("wait_time_follow_max")))))
 
