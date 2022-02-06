@@ -235,7 +235,7 @@ class Parser(threading.Thread):
 
                 if not exists:
                     # Create new user by username.
-                    await sync_to_async(mdl.User.objects.create)(gid = nuser["id"], username = nuser["login"], parent = user.gid, auto_added = True)
+                    await sync_to_async(mdl.User.objects.create)(gid = nuser["id"], username = nuser["login"], parent = user.id, auto_added = True)
 
                     if int(await self.get_setting("verbose")) >= 3:
                         print("[V] Adding user " + nuser["login"] + " (parent " + user.username + ")")
