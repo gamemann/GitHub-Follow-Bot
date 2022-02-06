@@ -427,6 +427,7 @@ class Parser(threading.Thread):
 
                         # Make a new follower entry.
                         if not exists:
+                            await sync_to_async(user.save)()
                             await sync_to_async(mdl.Follower.objects.create)(target_user = user, user = muser)
 
                         # Check if the same user is following our target.
