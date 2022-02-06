@@ -59,7 +59,6 @@ class Setting(models.Model):
         return self.key
 
 class User(models.Model):
-    gid = models.IntegerField(editable = False, null = True)
     parent = models.IntegerField(editable = False, default = 0, null = True)
 
     username = models.CharField(verbose_name = "Username", help_text = "The GitHub username.", max_length = 64, unique = True)
@@ -72,50 +71,6 @@ class User(models.Model):
 
     cur_page = models.IntegerField(editable = False, default = 1)
 
-    async def retrieve_github_id(self):
-        if back_bone.parser.api is None:
-            back_bone.parser.api = ga.GH_API()
-
-        if back_bone.parser.global_token is None or back_bone.parser.global_username is None:
-            return
-
-        back_bone.parser.api.authenticate(back_bone.parser.global_username, back_bone.parser.global_token)
-
-        res = None
-
-        # Send request.
-        try:
-            res = await back_bone.parser.api.send('GET', '/users/' + self.username)
-        except Exception as e:
-            print("[ERR] Failed to retrieve Github ID for user " + self.username + " (request failure).")
-            print(e)
-
-            await back_bone.parser.do_fail()
-
-            return
-
-        # Check status code.
-        if res[1] != 200 and res[1] != 204:
-            await back_bone.parser.do_fail()
-
-            return
-
-        # Decode JSON.
-        try:
-            data = json.loads(res[0])
-        except json.JSONDecodeError as e:
-            print("[ERR] Failed to retrieve GitHub ID for user " + self.username + " (JSON decode failure).")
-            print(e)
-
-            return
-
-        # Store GitHub ID.
-        if "id" in data:
-            self.gid = int(data["id"])
-        else:
-            print("[ERR] Failed to retrieve GitHub ID for user " + self.username + " (ID doesn't exist in JSON data).")
-            return 
-
     def save(self, *args, **kwargs):
         try:
             super().save(*args, **kwargs)
@@ -124,8 +79,6 @@ class User(models.Model):
             print(e)
 
             return
-
-        asyncio.run(self.retrieve_github_id())
 
     def __str__(self):
         return self.username

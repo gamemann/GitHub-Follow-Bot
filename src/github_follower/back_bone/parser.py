@@ -43,10 +43,10 @@ class Parser(threading.Thread):
         asyncio.run(self.work())
 
     @sync_to_async
-    def get_users(self, gids, need_parse = True):
+    def get_users(self, gnames, need_parse = True):
         import gf.models as mdl
 
-        res = mdl.User.objects.all().exclude(gid__in = gids).order_by('needs_to_seed', F('last_parsed').asc(nulls_first = True))
+        res = mdl.User.objects.all().exclude(username__in = gnames).order_by('needs_to_seed', F('last_parsed').asc(nulls_first = True))
 
         if need_parse:
             res.filter(needs_parsing = True)
@@ -144,13 +144,13 @@ class Parser(threading.Thread):
         if free_users > 0:
             target_users = await self.get_target_users()
 
-            # Loop for target GIDs to exclude from parsing list.
-            gids = []
+            # Loop for target GitHub usernames to exclude from parsing list.
+            gnames = []
 
             for user in target_users:
-                gids.append(user.user.gid)
+                gnames.append(user.user.username)
 
-            users = await self.get_users(gids)
+            users = await self.get_users(gnames)
             user_cnt = 0
 
             for user in users:
@@ -235,7 +235,7 @@ class Parser(threading.Thread):
 
                 if not exists:
                     # Create new user by username.
-                    await sync_to_async(mdl.User.objects.create)(gid = nuser["id"], username = nuser["login"], parent = user.id, auto_added = True)
+                    await sync_to_async(mdl.User.objects.create)(username = nuser["login"], parent = user.id, auto_added = True)
 
                     if int(await self.get_setting("verbose")) >= 3:
                         print("[V] Adding user " + nuser["login"] + " (parent " + user.username + ")")
@@ -396,7 +396,7 @@ class Parser(threading.Thread):
                         muser = None
 
                         try:
-                            muser = await self.get_filtered(mdl.User, {"gid": fuser["id"]})
+                            muser = await self.get_filtered(mdl.User, {"username": fuser["login"]})
                             muser = muser[0]
                         except Exception:
                             exists = False
@@ -405,7 +405,7 @@ class Parser(threading.Thread):
                             exists = False
 
                         if not exists:
-                            muser = await sync_to_async(mdl.User.objects.create)(gid = fuser["id"], username = fuser["login"], needs_parsing = False)
+                            muser = await sync_to_async(mdl.User.objects.create)(username = fuser["login"], needs_parsing = False)
 
                         # Add to follower list if not already on it.
                         exists = True
@@ -459,14 +459,14 @@ class Parser(threading.Thread):
             target_users = await self.get_target_users()
             max_users = int(await self.get_setting("max_scan_users"))
 
-            # Loop for target GIDs to exclude from parsing list.
-            gids = []
+            # Loop for target GitHub usernames to exclude from parsing list.
+            gnames = []
 
             for user in target_users:
-                gids.append(user.user.gid)
+                gnames.append(user.user.username)
 
             # Retrieve users excluding target users.
-            users = await self.get_users(gids)
+            users = await self.get_users(gnames)
 
             for user in users[:max_users]:
                 # Update last parsed.
@@ -475,9 +475,6 @@ class Parser(threading.Thread):
                 # Check if this user needed to seed.
                 if user.needs_to_seed:
                     user.needs_to_seed = False
-
-                # Update GUID.
-                await user.retrieve_github_id()
 
                 # Save user.
                 await sync_to_async(user.save)()
