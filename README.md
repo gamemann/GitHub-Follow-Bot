@@ -15,6 +15,10 @@ The bot works as the following.
 * Another task is ran that checks all users a target user is following and unfollows the user after *x* days (0 = doesn't unfollow).
 * Each follow and unfollow is followed by a random range wait time which may be configured.
 
+## To Do
+* Develop a more randomized timing system including most likely active hours of the day.
+* See if I can use something better in Django to alter general settings instead of relying on a table in the SQLite database.
+
 ## Requirements
 The following Python models are required and I'd recommend Python version 3.8 or above since that's what I've tested with.
 
@@ -109,7 +113,7 @@ While you could technically run the Django application's development server for 
 ## FAQ
 **What did you choose Django to use as an interface?**
 
-While settings could have been configured on the host itself, I wanted an interface that was easily accessible from anywhere. The best thing for this would be a webssite in my opinion. Most of my experience is with Django which is why I chose that project.
+While settings could have been configured on the host itself, I wanted an interface that was easily accessible from anywhere. The best thing for this would be a website in my opinion. Most of my experience is with Django which is why I chose that project.
 
 ## Credits
 * [Christian Deacon](https://github.com/gamemann)
