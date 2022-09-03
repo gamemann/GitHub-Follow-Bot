@@ -111,7 +111,7 @@ http://localhost:8000
 While you could technically run the Django application's development server for this bot since only the settings are configured through there, Django recommends reading [this](https://docs.djangoproject.com/en/3.2/howto/deployment/) for production use.
 
 ## FAQ
-**What did you choose Django to use as an interface?**
+**Why did you choose Django to use as an interface?**
 
 While settings could have been configured on the host itself, I wanted an interface that was easily accessible from anywhere. The best thing for this would be a website in my opinion. Most of my experience is with Django which is why I chose that project.
 
