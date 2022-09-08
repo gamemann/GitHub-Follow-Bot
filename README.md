@@ -1,6 +1,6 @@
-# GitHub Follower Bot (WIP)
+# GitHub Follow Bot
 ## Description
-This is a GitHub Follower Bot made inside of a Django application. Management of the bot is done inside of Django's default admin center. The bot itself runs in the background of the Django application.
+This is a GitHub Follow Bot made inside of a Django application. Management of the bot is done inside of Django's default admin center (`/admin`). The bot itself runs in the background of the Django application.
 
 The bot works as the following.
 
@@ -17,7 +17,7 @@ The bot works as the following.
 
 ## To Do
 * Develop a more randomized timing system including most likely active hours of the day.
-* See if I can use something better in Django to alter general settings instead of relying on a table in the SQLite database.
+* See if I can use something better in Django to alter general settings instead of relying on a table in the SQLite database. There are also issues with synchronization due to limitations with Django at this moment. 
 
 ## Requirements
 The following Python models are required and I'd recommend Python version 3.8 or above since that's what I've tested with.
@@ -96,9 +96,8 @@ cd GitHub-Follower-Bot/src/github_follower
 python3 manage.py migrate
 
 # Run the development server on any IP (0.0.0.0) as port 8000.
+# NOTE - If you don't want to expose the application publicly, bind it to a LAN IP instead (e.g. 10.50.0.4:8000 instead 0f 0.0.0.0:8000).
 python3 manage.py runserver 0.0.0.0:8000
-
-# NOTE - If you don't want to expose the application publicly, bind it to a local IP above (e.g. 10.50.0.4:8000 instead 0f 0.0.0.0:8000).
 
 # Create super user for admin web interface.
 python3 manage.py createsuperuser
