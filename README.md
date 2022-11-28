@@ -1,4 +1,7 @@
 # GitHub Follow Bot
+## 11-28-22
+I'm not sure when I'll get around to finishing this tool due to other projects I'm working on. However, I wanted to note that mass following users is against GitHub's TOS (not stated below). Therefore, please use at your own risk!
+
 ## Description
 This is a GitHub Follow Bot made inside of a Django application. Management of the bot is done inside of Django's default admin center (`/admin`). The bot itself runs in the background of the Django application.
 
